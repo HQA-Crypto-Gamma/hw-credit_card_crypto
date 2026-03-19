@@ -2,6 +2,7 @@
 
 require_relative '../credit_card'
 require_relative '../substitution_cipher'
+require_relative '../double_trans_cipher'
 require 'minitest/autorun'
 require 'minitest/rg'
 
@@ -40,6 +41,32 @@ describe 'Test card info encryption' do
     end
   end
 
-  # TODO: Add tests for double transposition and modern symmetric key ciphers
-  #       Can you DRY out the tests using metaprogramming? (see lecture slide)
+  describe 'Using Double Transposition cipher' do
+    {
+      'card information' => -> { @cc.to_s },
+      'non-square text' => -> { 'encryption demo' },
+      'square text' => -> { 'abcd1234wxyz5678' }
+    }.each do |label, text_builder|
+      it "should encrypt and decrypt #{label}" do
+        text = instance_exec(&text_builder)
+        enc = DoubleTranspositionCipher.encrypt(text, @key)
+        dec = DoubleTranspositionCipher.decrypt(enc, @key)
+
+        _(enc).wont_be_nil
+        _(enc).wont_equal text
+        _(dec).must_equal text
+      end
+    end
+
+    it 'should produce different ciphertext for different keys' do
+      text = @cc.to_s
+      enc_one = DoubleTranspositionCipher.encrypt(text, @key)
+      enc_two = DoubleTranspositionCipher.encrypt(text, @key + 1)
+
+      _(enc_one).wont_equal enc_two
+    end
+  end
+
+  # TODO: Add tests for modern symmetric key ciphers
+
 end
