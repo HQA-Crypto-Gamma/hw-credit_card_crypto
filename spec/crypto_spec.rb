@@ -68,5 +68,4 @@ describe 'Test card info encryption' do
   end
 
   # TODO: Add tests for modern symmetric key ciphers
-
 end

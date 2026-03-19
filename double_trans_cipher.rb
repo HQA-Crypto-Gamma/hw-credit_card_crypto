@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Create a namespace for double transposition cipher
 module DoubleTranspositionCipher
   def self.encrypt(document, key)
     # TODO: FILL THIS IN!
@@ -7,44 +10,54 @@ module DoubleTranspositionCipher
     # 3. sort rows in predictibly random way using key as seed
     # 4. sort columns of each row in predictibly random way
     # 5. return joined cyphertext
-    cols = Math.sqrt(document.length).ceil
-    rows = (document.length.to_f / cols).ceil
-
-    matrix = document.chars.each_slice(cols).to_a
-    matrix[-1] += [" "] * (cols - matrix[-1].size)
-
-    rng = Random.new(key)
-    row_order = (0...rows).to_a.shuffle(random: rng)
-    col_order = (0...cols).to_a.shuffle(random: rng)
-
-    reorder_matrix = row_order.map { |i| matrix[i] }
-    reorder_matrix = reorder_matrix.transpose
-    reorder_matrix = col_order.map { |i| reorder_matrix[i] }
-
-    reorder_matrix.transpose.flatten.join
-
+    cols, rows = matrix_dimensions(document)
+    matrix = build_matrix(document, cols)
+    row_order, col_order = permutation_orders(rows, cols, key)
+    apply_encrypt_permutation(matrix, row_order, col_order).join
   end
 
   def self.decrypt(ciphertext, key)
     # TODO: FILL THIS IN!
-    cols = Math.sqrt(ciphertext.length).ceil
-    rows = (ciphertext.length.to_f / cols).ceil
-
+    cols, rows = matrix_dimensions(ciphertext)
     matrix = ciphertext.chars.each_slice(cols).to_a
-    reorder_matrix = matrix.transpose
+    row_order, col_order = permutation_orders(rows, cols, key)
+    apply_decrypt_permutation(matrix, row_order, col_order).join.rstrip
+  end
 
+  def self.matrix_dimensions(text)
+    cols = Math.sqrt(text.length).ceil
+    rows = (text.length.to_f / cols).ceil
+    [cols, rows]
+  end
+
+  def self.permutation_orders(rows, cols, key)
     rng = Random.new(key)
     row_order = (0...rows).to_a.shuffle(random: rng)
     col_order = (0...cols).to_a.shuffle(random: rng)
+    [row_order, col_order]
+  end
 
-    row_inverse = row_order.each_with_index.sort_by { |val, _| val }.map { |_, idx| idx }
-    col_inverse = col_order.each_with_index.sort_by { |val, _| val }.map { |_, idx| idx }
+  def self.build_matrix(text, cols)
+    matrix = text.chars.each_slice(cols).to_a
+    matrix[-1] += [' '] * (cols - matrix[-1].size)
+    matrix
+  end
 
-    reorder_matrix = col_inverse.map { |i| reorder_matrix[i] }
-    reorder_matrix = reorder_matrix.transpose
-    reorder_matrix = row_inverse.map { |i| reorder_matrix[i] }
+  def self.inverse_order(order)
+    order.each_with_index.sort_by { |val, _| val }.map { |_, idx| idx }
+  end
 
-    reorder_matrix.flatten.join.rstrip
+  def self.apply_encrypt_permutation(matrix, row_order, col_order)
+    reordered = row_order.map { |index| matrix[index] }
+    reordered = reordered.transpose
+    reordered = col_order.map { |index| reordered[index] }
+    reordered.transpose
+  end
 
+  def self.apply_decrypt_permutation(matrix, row_order, col_order)
+    reordered = matrix.transpose
+    reordered = inverse_order(col_order).map { |index| reordered[index] }
+    reordered = reordered.transpose
+    inverse_order(row_order).map { |index| reordered[index] }
   end
 end
