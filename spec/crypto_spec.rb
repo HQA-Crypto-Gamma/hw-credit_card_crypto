@@ -68,7 +68,7 @@ describe 'Test card info encryption' do
       _(enc_one).wont_equal enc_two
     end
   end
-  
+
   describe 'Using Modern Symmetric Cipher' do
     it 'should generate a Base64 key' do
       key = ModernSymmetricCipher.generate_new_key
