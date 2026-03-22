@@ -27,9 +27,18 @@ end
 describe 'Test hashing requirements' do
   describe 'Check hashes are consistently produced' do
     # TODO: Check that each card produces the same hash if hashed repeatedly
+    it 'works on all Visa cards' do
+      cards.each do |card|
+        _(card.hash).must_equal card.hash
+      end
+    end
   end
 
   describe 'Check for unique hashes' do
     # TODO: Check that each card produces a different hash than other cards
+    it 'works on all Visa cards' do
+      hashes = cards.map(&:hash) # &:hash is shorthand for { |card| card.hash }
+      _(hashes.uniq.length).must_equal cards.length
+    end
   end
 end
