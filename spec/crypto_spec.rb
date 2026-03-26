@@ -78,6 +78,34 @@ describe 'Test card info encryption' do
       _(Base64.strict_decode64(key).bytesize).must_equal 32
     end
 
+    it 'should return Base64 ciphertext' do
+      key = ModernSymmetricCipher.generate_new_key
+      enc = ModernSymmetricCipher.encrypt(@cc.to_s, key)
+
+      _(enc).must_be_instance_of String
+      _(Base64.strict_encode64(Base64.strict_decode64(enc))).must_equal enc
+    end
+
+    # Check that decrypting with a different key does not succeed
+    it 'should not decrypt text with a different key' do
+      key = ModernSymmetricCipher.generate_new_key
+      wrong_key = ModernSymmetricCipher.generate_new_key
+      enc = ModernSymmetricCipher.encrypt(@cc.to_s, key)
+
+      _ { ModernSymmetricCipher.decrypt(enc, wrong_key) }.must_raise RbNaCl::CryptoError
+    end
+
+    # Check that encryption and decryption work for an empty string
+    it 'should encrypt and decrypt empty text' do
+      key = ModernSymmetricCipher.generate_new_key
+      enc = ModernSymmetricCipher.encrypt('', key)
+      dec = ModernSymmetricCipher.decrypt(enc, key)
+
+      _(enc).must_be_instance_of String
+      _(enc).wont_equal ''
+      _(dec).must_equal ''
+    end
+
     {
       'card information' => -> { @cc.to_s },
       'plain text' => -> { 'encryption demo' }
